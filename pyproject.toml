@@ -1,0 +1,17 @@
+[project]
+name = "quanvolutional-neural-networks"
+version = "0.1.0"
+description = "Quantum Machine Learning with Quanvolutional Neural Networks"
+requires-python = ">=3.12"
+dependencies = [
+    "matplotlib>=3.10.8",
+    "numpy>=2.4.1",
+    "pennylane>=0.44.0",
+    "rich>=14.2.0",
+    "scikit-learn>=1.8.0",
+    "seaborn>=0.13.2",
+    "torch>=2.9.1",
+    "torchvision>=0.24.1",
+    "tqdm>=4.67.1",
+    "wandb>=0.23.1",
+]

@@ -1,0 +1,98 @@
+# Experiment settings
+experiment:
+  name: "qnn_baseline"
+  seed: 42
+  device: "auto"  # auto, cuda, cpu
+
+# WandB settings
+wandb:
+  enabled: false
+  project: "quanvolutional-nn"
+  entity: "hadron27-unifi"
+  tags: ["baseline", "mnist"]
+
+# Dataset configuration
+dataset:
+  name: "MNIST"  # Options: MNIST, FashionMNIST, EMNIST, CIFAR10
+  path: "./data"
+  train_size: 120
+  test_size: 20
+  normalize: true
+
+# Quantum circuit configuration
+quantum:
+  n_qubits: 4  # For 2x2 filters
+  kernel_size: 2  # 2x2 convolution window
+  stride: 2
+
+  # Encoding method
+  encoding:
+    type: "threshold"  # Options: threshold, angle, amplitude, dense
+    threshold: 0.0  # For threshold encoding
+    scale_factor: 3.14159  # For angle encoding (pi)
+
+  # Circuit type
+  circuit:
+    type: "random"  # Options: random, structured, hardware_efficient
+    n_layers: 1
+    gate_set: ["RX", "RY", "RZ", "CNOT"]  # For random circuits
+    entanglement: "full"  # Options: full, linear, circular (for structured)
+    random_seed: 0
+
+  # Noise model (for robustness experiments)
+  noise:
+    enabled: false
+    backend: "qasm_simulator"
+    noise_model: "fake_jakarta"  # Qiskit fake backend
+
+# Model configuration
+model:
+  type: "classical"  # Options: qnn, classical, random_nonlinear
+
+  # Quanvolutional layer
+  quanv_filters: 25  # Number of quantum filters
+
+  # Classical layers (after quanvolution)
+  conv1_filters: 50
+  conv1_kernel: 5
+  conv2_filters: 64
+  conv2_kernel: 5
+  fc1_units: 1024
+  dropout: 0.4
+  num_classes: 10
+
+# Training configuration
+training:
+  epochs: 30
+  batch_size: 128
+  learning_rate: 0.001
+  optimizer: "adam"  # Options: adam, sgd, adamw
+  scheduler: null  # Options: null, step, cosine
+
+  # Validation
+  val_split: 0.1
+  val_frequency: 1  # Validate every N epochs
+
+  # Checkpointing
+  save_frequency: 5
+  checkpoint_dir: "./checkpoints"
+  save_best_only: true
+
+# Visualization configuration
+visualization:
+  enabled: true
+  save_dir: "./results"
+  plot_frequency: 5  # Plot every N epochs
+  n_samples: 8  # Number of samples to visualize
+  dpi: 300
+
+  # What to plot
+  plot_feature_maps: true
+  plot_metrics: true
+  plot_confusion_matrix: true
+
+# Preprocessing configuration
+preprocessing:
+  quantum_preprocess: true  # Pre-compute quantum features
+  cache_dir: "./cache"
+  force_recompute: false  # Set true to ignore cached results

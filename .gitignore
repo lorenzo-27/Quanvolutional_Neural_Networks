@@ -1,0 +1,33 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Data & artifacts
+checkpoints/
+data/
+outputs/
+results/
+cache/
+
+# Experiment tracking
+wandb/
+wandb-debug.log
+
+# Notebooks
+.ipynb_checkpoints/
+
+# OS & misc
+.DS_Store
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.log
