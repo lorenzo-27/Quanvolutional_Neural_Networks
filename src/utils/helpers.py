@@ -8,6 +8,7 @@ import random
 from rich.console import Console
 from rich.table import Table
 from typing import Dict, Any
+import yaml
 
 console = Console()
 
@@ -219,3 +220,10 @@ def load_results(filepath: str) -> Dict[str, Any]:
         results = json.load(f)
 
     return results
+
+
+def load_config(config_path: str = "config/config.yaml") -> dict:
+    """Load configuration from YAML file."""
+    with open(config_path, 'r') as f:
+        config = yaml.safe_load(f)
+    return config

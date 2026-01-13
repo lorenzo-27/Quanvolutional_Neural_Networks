@@ -21,16 +21,9 @@ from src.quantum.quanvolution import QuanvolutionalLayer
 from src.models.qnn import get_model
 from src.training.trainer import Trainer
 from src.visualization.plots import Visualizer
-from src.utils.helpers import set_seed, get_device, print_config
+from src.utils.helpers import set_seed, get_device, print_config, load_config
 
 console = Console()
-
-
-def load_config(config_path: str = "config/config.yaml") -> dict:
-    """Load configuration from YAML file."""
-    with open(config_path, 'r') as f:
-        config = yaml.safe_load(f)
-    return config
 
 
 def setup_experiment(config: dict) -> dict:
