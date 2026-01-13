@@ -59,7 +59,7 @@ class AngleEncoding(BaseEncoding):
     Uses RY rotations: RY(π * pixel_value)
     """
 
-    def __init__(self, n_qubits: int, scale_factor: float = np.pi):
+    def __init__(self, n_qubits: int, scale_factor: float = np.pi, **kwargs):
         super().__init__(n_qubits)
         self.scale_factor = scale_factor
 
