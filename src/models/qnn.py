@@ -20,6 +20,7 @@ class ClassicalCNN(nn.Module):
     def __init__(
             self,
             input_channels: int = 1,
+            input_size: int = 28,
             conv1_filters: int = 50,
             conv1_kernel: int = 5,
             conv2_filters: int = 64,
@@ -45,9 +46,10 @@ class ClassicalCNN(nn.Module):
         # Pooling
         self.pool = nn.MaxPool2d(2, 2)
 
-        # Calculate flattened size (depends on input size)
-        # For 28x28 input: 28->14->7, so 7*7*conv2_filters
-        self.fc1_input_size = 7 * 7 * conv2_filters
+        # Dynamically calculate flattened size (depends on input size)
+        # Calcolo dinamico: input_size -> pool -> pool
+        size_after_pools = input_size // 4  # Two pooling 2x2
+        self.fc1_input_size = size_after_pools * size_after_pools * conv2_filters
 
         # Fully connected layers
         self.fc1 = nn.Linear(self.fc1_input_size, fc1_units)
@@ -87,6 +89,7 @@ class QuantumCNN(nn.Module):
     def __init__(
             self,
             quantum_channels: int,  # n_filters * n_qubits from quanv layer
+            input_size: int = 14,
             conv1_filters: int = 50,
             conv1_kernel: int = 5,
             conv2_filters: int = 64,
@@ -111,8 +114,9 @@ class QuantumCNN(nn.Module):
 
         self.pool = nn.MaxPool2d(2, 2)
 
-        # For 14x14 input (from 2x2 quanv with stride 2): 14->7->3
-        self.fc1_input_size = 3 * 3 * conv2_filters
+        # Dynamically calculate flattened size
+        size_after_pools = input_size // 4
+        self.fc1_input_size = size_after_pools * size_after_pools * conv2_filters
 
         self.fc1 = nn.Linear(self.fc1_input_size, fc1_units)
         self.dropout = nn.Dropout(dropout)
@@ -164,6 +168,7 @@ class RandomNonlinearCNN(nn.Module):
     def __init__(
             self,
             input_channels: int = 1,
+            input_size: int = 28,
             random_filters: int = 25,
             conv1_filters: int = 50,
             conv1_kernel: int = 5,
@@ -200,8 +205,10 @@ class RandomNonlinearCNN(nn.Module):
 
         self.pool = nn.MaxPool2d(2, 2)
 
-        # Similar to QNN
-        self.fc1_input_size = 3 * 3 * conv2_filters
+        # Dynamically calculate flattened size
+        size_after_random = input_size // 2
+        size_after_pools = size_after_random // 4
+        self.fc1_input_size = size_after_pools * size_after_pools * conv2_filters
 
         self.fc1 = nn.Linear(self.fc1_input_size, fc1_units)
         self.dropout = nn.Dropout(dropout)
@@ -229,63 +236,83 @@ def get_model(model_type: str, config: Dict[str, Any], **kwargs) -> nn.Module:
 
     Args:
         model_type: Type of model (qnn, classical, random_nonlinear)
-        config: Model configuration
+        config: Full configuration dict (not just model config)
         **kwargs: Additional parameters
 
     Returns:
         Model instance
     """
+
+    # Get model config - support both full config and model-only config
+    if "model" in config:
+        model_config = config["model"]
+        dataset_name = config.get("dataset", {}).get("name", "MNIST")
+    else:
+        model_config = config
+        dataset_name = kwargs.get("dataset_name", "MNIST")
+
+    # Determine input_size and input_channels based on dataset
+    if dataset_name == "CIFAR10":
+        input_size = 32
+        input_channels = 3
+    else:  # MNIST, FashionMNIST, EMNIST
+        input_size = 28
+        input_channels = 1
+
     if model_type == "classical":
         return ClassicalCNN(
-            input_channels=kwargs.get("input_channels", 1),
-            conv1_filters=config.get("conv1_filters", 50),
-            conv1_kernel=config.get("conv1_kernel", 5),
-            conv2_filters=config.get("conv2_filters", 64),
-            conv2_kernel=config.get("conv2_kernel", 5),
-            fc1_units=config.get("fc1_units", 1024),
-            dropout=config.get("dropout", 0.4),
-            num_classes=config.get("num_classes", 10),
+            input_channels=input_channels,
+            input_size=input_size,
+            conv1_filters=model_config.get("conv1_filters", 50),
+            conv1_kernel=model_config.get("conv1_kernel", 5),
+            conv2_filters=model_config.get("conv2_filters", 64),
+            conv2_kernel=model_config.get("conv2_kernel", 5),
+            fc1_units=model_config.get("fc1_units", 1024),
+            dropout=model_config.get("dropout", 0.4),
+            num_classes=model_config.get("num_classes", 10),
         )
 
     elif model_type == "qnn":
         quantum_channels = kwargs.get("quantum_channels")
         if quantum_channels is None:
-            # Calculate from quanv config
             n_qubits = config.get("quantum", {}).get("n_qubits", 4)
-            n_filters = config.get("quanv_filters", 25)
+            n_filters = model_config.get("quanv_filters", 25)
             quantum_channels = n_qubits * n_filters
+
+        # Per QNN, input_size è dopo quanvolution (stride 2)
+        qnn_input_size = input_size // 2
 
         return QuantumCNN(
             quantum_channels=quantum_channels,
-            conv1_filters=config.get("conv1_filters", 50),
-            conv1_kernel=config.get("conv1_kernel", 5),
-            conv2_filters=config.get("conv2_filters", 64),
-            conv2_kernel=config.get("conv2_kernel", 5),
-            fc1_units=config.get("fc1_units", 1024),
-            dropout=config.get("dropout", 0.4),
-            num_classes=config.get("num_classes", 10),
+            input_size=qnn_input_size,
+            conv1_filters=model_config.get("conv1_filters", 50),
+            conv1_kernel=model_config.get("conv1_kernel", 5),
+            conv2_filters=model_config.get("conv2_filters", 64),
+            conv2_kernel=model_config.get("conv2_kernel", 5),
+            fc1_units=model_config.get("fc1_units", 1024),
+            dropout=model_config.get("dropout", 0.4),
+            num_classes=model_config.get("num_classes", 10),
         )
 
     elif model_type == "qnn_simple":
-        # Simple classifier for quantum features
-        input_size = kwargs.get("input_size")
         return SimpleClassifier(
             input_size=input_size,
-            num_classes=config.get("num_classes", 10),
+            num_classes=model_config.get("num_classes", 10),
         )
 
     elif model_type == "random_nonlinear":
         return RandomNonlinearCNN(
-            input_channels=kwargs.get("input_channels", 1),
-            random_filters=config.get("quanv_filters", 25),
-            conv1_filters=config.get("conv1_filters", 50),
-            conv1_kernel=config.get("conv1_kernel", 5),
-            conv2_filters=config.get("conv2_filters", 64),
-            conv2_kernel=config.get("conv2_kernel", 5),
-            fc1_units=config.get("fc1_units", 1024),
-            dropout=config.get("dropout", 0.4),
-            num_classes=config.get("num_classes", 10),
-            seed=config.get("seed", 42),
+            input_channels=input_channels,
+            input_size=input_size,
+            random_filters=model_config.get("quanv_filters", 25),
+            conv1_filters=model_config.get("conv1_filters", 50),
+            conv1_kernel=model_config.get("conv1_kernel", 5),
+            conv2_filters=model_config.get("conv2_filters", 64),
+            conv2_kernel=model_config.get("conv2_kernel", 5),
+            fc1_units=model_config.get("fc1_units", 1024),
+            dropout=model_config.get("dropout", 0.4),
+            num_classes=model_config.get("num_classes", 10),
+            seed=config.get("experiment", {}).get("seed", 42),
         )
 
     else:

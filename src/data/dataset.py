@@ -46,18 +46,21 @@ class DatasetManager:
         """Get appropriate transform for the dataset."""
         transform_list = []
 
-        # Convert to grayscale if needed (CIFAR-10)
-        if self.dataset_name == "CIFAR10":
-            transform_list.append(transforms.Grayscale())
-
         # Convert to tensor
         transform_list.append(transforms.ToTensor())
 
         # Normalize if requested
         if self.normalize:
-            # Standard normalization: pixels in [0, 1]
-            # Already done by ToTensor()
-            pass
+            if self.dataset_name == "CIFAR10":
+                # Normalizzazione per 3 canali RGB
+                transform_list.append(
+                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                )
+            else:
+                # Normalizzazione per 1 canale (grayscale)
+                transform_list.append(
+                    transforms.Normalize((0.5,), (0.5,))
+                )
 
         return transforms.Compose(transform_list)
 

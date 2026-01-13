@@ -172,11 +172,11 @@ def train_model(
         quantum_channels = n_qubits * n_filters
         model = get_model(
             "qnn",
-            config["model"],
+            config,
             quantum_channels=quantum_channels
         )
     else:
-        model = get_model(model_type, config["model"])
+        model = get_model(model_type, config)
 
     # Create trainer
     trainer = Trainer(

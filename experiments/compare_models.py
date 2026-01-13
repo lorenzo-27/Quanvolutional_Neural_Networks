@@ -105,7 +105,7 @@ def main():
         test_size=config["dataset"]["test_size"]
     )
 
-    classical_model = get_model("classical", config["model"])
+    classical_model = get_model("classical", config)
     classical_trainer = Trainer(
         model=classical_model,
         config=config,
@@ -198,7 +198,7 @@ def main():
     n_filters = config["model"]["quanv_filters"]
     quantum_channels = n_qubits * n_filters
 
-    qnn_model = get_model("qnn", config["model"], quantum_channels=quantum_channels)
+    qnn_model = get_model("qnn", config, quantum_channels=quantum_channels)
     qnn_trainer = Trainer(
         model=qnn_model,
         config=config,
@@ -228,7 +228,7 @@ def main():
     # ===================================================================
     console.print("\n[bold yellow]═══ Training Random Nonlinear CNN ═══[/bold yellow]\n")
 
-    random_model = get_model("random_nonlinear", config["model"])
+    random_model = get_model("random_nonlinear", config)
     random_trainer = Trainer(
         model=random_model,
         config=config,
