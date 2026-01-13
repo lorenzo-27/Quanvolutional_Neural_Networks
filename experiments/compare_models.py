@@ -94,7 +94,8 @@ def main():
     # Visualizer
     viz = Visualizer(
         save_dir=config["visualization"]["save_dir"],
-        use_wandb=config["wandb"]["enabled"]
+        use_wandb=config["wandb"]["enabled"],
+        config=config
     )
 
     results = {}

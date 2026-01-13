@@ -232,7 +232,8 @@ def main(config_path: str = "config/config.yaml"):
     # Initialize visualizer
     viz = Visualizer(
         save_dir=config["visualization"]["save_dir"],
-        use_wandb=config["wandb"]["enabled"]
+        use_wandb=config["wandb"]["enabled"],
+        config=config
     )
 
     # Run based on model type

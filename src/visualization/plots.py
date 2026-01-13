@@ -8,7 +8,7 @@ import seaborn as sns
 import numpy as np
 import torch
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict, Any
 from sklearn.metrics import confusion_matrix
 import wandb
 
@@ -20,10 +20,70 @@ plt.rcParams['figure.dpi'] = 100
 class Visualizer:
     """Handles all visualization tasks for QNN experiments."""
 
-    def __init__(self, save_dir: str = "./results", use_wandb: bool = True):
-        self.save_dir = Path(save_dir)
-        self.save_dir.mkdir(parents=True, exist_ok=True)
+    def __init__(
+            self,
+            save_dir: str = "./results",
+            use_wandb: bool = True,
+            config: Optional[Dict[str, Any]] = None
+    ):
+        self.base_save_dir = Path(save_dir)
         self.use_wandb = use_wandb
+        self.config = config or {}
+
+        # Extract configuration for naming
+        self._setup_naming()
+
+    def _setup_naming(self):
+        """Setup naming conventions based on config."""
+        # Model type
+        self.model_type = self.config.get("model", {}).get("type", "unknown")
+
+        # Encoding type
+        encoding_config = self.config.get("quantum", {}).get("encoding", {})
+        self.encoding_type = encoding_config.get("type", "unknown")
+
+        # Circuit type
+        circuit_config = self.config.get("quantum", {}).get("circuit", {})
+        self.circuit_type = circuit_config.get("type", "unknown")
+
+        # Noise
+        noise_config = self.config.get("quantum", {}).get("noise", {})
+        self.noise_enabled = noise_config.get("enabled", False)
+
+        # Create model-specific save directory
+        self.save_dir = self.base_save_dir / self.model_type
+        self.save_dir.mkdir(parents=True, exist_ok=True)
+
+    def _generate_filename(self, base_name: str, extension: str = "png") -> str:
+        """
+        Generate a filename based on current configuration.
+
+        Args:
+            base_name: Base name for the file (e.g., "feature_maps", "training_curves")
+            extension: File extension
+
+        Returns:
+            Formatted filename
+        """
+        parts = [base_name]
+
+        # Add encoding type
+        parts.append(self.encoding_type)
+
+        # Add circuit type
+        parts.append(self.circuit_type)
+
+        # Add noise indicator if enabled
+        if self.noise_enabled:
+            parts.append("noise")
+
+        filename = "_".join(parts) + f".{extension}"
+        return filename
+
+    def update_config(self, config: Dict[str, Any]):
+        """Update configuration and regenerate naming."""
+        self.config = config
+        self._setup_naming()
 
     def plot_feature_maps(
             self,
@@ -31,7 +91,7 @@ class Visualizer:
             quantum_features: np.ndarray,
             classical_features: Optional[np.ndarray] = None,
             n_samples: int = 8,
-            save_name: str = "feature_maps.png"
+            save_name: Optional[str] = None
     ):
         """
         Visualize original images vs quantum/classical feature maps.
@@ -41,7 +101,7 @@ class Visualizer:
             quantum_features: Quantum-processed features [N, H', W', C]
             classical_features: Classical features (optional) [N, H', W', C]
             n_samples: Number of samples to show
-            save_name: Filename to save
+            save_name: Filename to save (auto-generated if None)
         """
         n_samples = min(n_samples, len(original_images))
 
@@ -101,6 +161,11 @@ class Visualizer:
                         )
 
         plt.tight_layout()
+
+        # Generate filename dynamically if not provided
+        if save_name is None:
+            save_name = self._generate_filename("feature_maps")
+
         save_path = self.save_dir / save_name
         plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
         plt.close()
@@ -114,7 +179,7 @@ class Visualizer:
     def plot_training_curves(
             self,
             metrics: dict,
-            save_name: str = "training_curves.png"
+            save_name: Optional[str] = None
     ):
         """
         Plot training and validation metrics over time.
@@ -122,7 +187,7 @@ class Visualizer:
         Args:
             metrics: Dict with keys like 'qnn', 'classical', each containing
                     train_losses, train_accs, val_losses, val_accs
-            save_name: Filename to save
+            save_name: Filename to save (auto-generated if None)
         """
         fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
@@ -130,7 +195,8 @@ class Visualizer:
         colors = {
             'qnn': '#2E86AB',
             'classical': '#A23B72',
-            'random': '#F18F01'
+            'random': '#F18F01',
+            'random_nonlinear': '#F18F01'
         }
 
         # Plot losses
@@ -191,6 +257,11 @@ class Visualizer:
         ax.set_ylim([0, 105])
 
         plt.tight_layout()
+
+        # Generate filename dynamically if not provided
+        if save_name is None:
+            save_name = self._generate_filename("training_curves")
+
         save_path = self.save_dir / save_name
         plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
         plt.close()
@@ -206,7 +277,7 @@ class Visualizer:
             predictions: np.ndarray,
             true_labels: np.ndarray,
             class_names: Optional[List[str]] = None,
-            save_name: str = "confusion_matrix.png"
+            save_name: Optional[str] = None
     ):
         """
         Plot confusion matrix.
@@ -215,7 +286,7 @@ class Visualizer:
             predictions: Predicted labels
             true_labels: True labels
             class_names: Names of classes (optional)
-            save_name: Filename to save
+            save_name: Filename to save (auto-generated if None)
         """
         cm = confusion_matrix(true_labels, predictions)
 
@@ -239,6 +310,11 @@ class Visualizer:
             ax.set_yticklabels(class_names)
 
         plt.tight_layout()
+
+        # Generate filename dynamically if not provided
+        if save_name is None:
+            save_name = self._generate_filename("confusion_matrix")
+
         save_path = self.save_dir / save_name
         plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
         plt.close()
@@ -253,7 +329,7 @@ class Visualizer:
             self,
             quantum_features: np.ndarray,
             sample_idx: int = 0,
-            save_name: str = "quantum_channels.png"
+            save_name: Optional[str] = None
     ):
         """
         Visualize all channels from quantum convolution for one sample.
@@ -261,7 +337,7 @@ class Visualizer:
         Args:
             quantum_features: Quantum features [N, H, W, C]
             sample_idx: Which sample to visualize
-            save_name: Filename to save
+            save_name: Filename to save (auto-generated if None)
         """
         n_channels = quantum_features.shape[-1]
         n_cols = min(8, n_channels)
@@ -299,6 +375,10 @@ class Visualizer:
         )
         plt.tight_layout()
 
+        # Generate filename dynamically if not provided
+        if save_name is None:
+            save_name = self._generate_filename("quantum_channels")
+
         save_path = self.save_dir / save_name
         plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
         plt.close()
@@ -312,14 +392,14 @@ class Visualizer:
     def plot_comparison_bar(
             self,
             results: dict,
-            save_name: str = "model_comparison.png"
+            save_name: Optional[str] = None
     ):
         """
         Bar plot comparing final accuracies of different models.
 
         Args:
             results: Dict like {'QNN': 97.5, 'Classical': 96.2, ...}
-            save_name: Filename to save
+            save_name: Filename to save (auto-generated if None)
         """
         fig, ax = plt.subplots(figsize=(10, 6))
 
@@ -349,6 +429,11 @@ class Visualizer:
         ax.grid(True, axis='y', alpha=0.3)
 
         plt.tight_layout()
+
+        # Generate filename dynamically if not provided
+        if save_name is None:
+            save_name = self._generate_filename("model_comparison")
+
         save_path = self.save_dir / save_name
         plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
         plt.close()
