@@ -1,9 +1,9 @@
 # Python-generated files
-__pycache__/
+/__pycache__
 *.py[oc]
-build/
-dist/
-wheels/
+/build
+/dist
+/wheels
 *.egg-info
 
 # Virtual environments
@@ -11,22 +11,22 @@ wheels/
 
 # Data & artifacts
 checkpoints/
-data/
-outputs/
-results/
-cache/
+/data
+/outputs
+/results
+/cache
 
 # Experiment tracking
-wandb/
+/wandb
 wandb-debug.log
 
 # Notebooks
-.ipynb_checkpoints/
+.ipynb_checkpoints
 
 # OS & misc
 .DS_Store
-.vscode/
-.idea/
+/.vscode
+/.idea
 
 # Temporary files
 *.tmp
