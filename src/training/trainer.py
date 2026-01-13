@@ -56,6 +56,19 @@ class Trainer:
         self.checkpoint_dir = Path(config["training"]["checkpoint_dir"])
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
+        # Build checkpoint filename prefix
+        self.checkpoint_prefix = self._build_checkpoint_prefix()
+
+    def _build_checkpoint_prefix(self) -> str:
+        """Build checkpoint filename prefix from config."""
+        model_type = self.config.get("model", {}).get("type", "unknown")
+        encoding_type = self.config.get("quantum", {}).get("encoding", {}).get("type", "unknown")
+        circuit_type = self.config.get("quantum", {}).get("circuit", {}).get("type", "unknown")
+        noise_enabled = self.config.get("quantum", {}).get("noise", {}).get("enabled", False)
+        noise_str = "noisy" if noise_enabled else "clean"
+
+        return f"{model_type}_{encoding_type}_{circuit_type}_{noise_str}"
+
     def _get_optimizer(self) -> optim.Optimizer:
         """Create optimizer based on config."""
         opt_name = self.config["training"]["optimizer"].lower()
@@ -229,7 +242,7 @@ class Trainer:
 
     def save_checkpoint(self, epoch: int, val_acc: float):
         """Save training checkpoint."""
-        checkpoint_path = self.checkpoint_dir / f"checkpoint_epoch_{epoch}.pt"
+        checkpoint_path = self.checkpoint_dir / f"{self.checkpoint_prefix}_epoch_{epoch}.pt"
 
         torch.save({
             'epoch': epoch,
@@ -246,7 +259,7 @@ class Trainer:
 
     def save_best_model(self, epoch: int, val_acc: float):
         """Save best model."""
-        model_path = self.checkpoint_dir / "best_model.pt"
+        model_path = self.checkpoint_dir / f"{self.checkpoint_prefix}_best.pt"
 
         torch.save({
             'epoch': epoch,
