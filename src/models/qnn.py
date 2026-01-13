@@ -279,8 +279,11 @@ def get_model(model_type: str, config: Dict[str, Any], **kwargs) -> nn.Module:
             n_filters = model_config.get("quanv_filters", 25)
             quantum_channels = n_qubits * n_filters
 
-        # Per QNN, input_size è dopo quanvolution (stride 2)
-        qnn_input_size = input_size // 2
+        # CIFAR10: 32 -> 16, MNIST: 28 -> 14
+        if dataset_name == "CIFAR10":
+            qnn_input_size = (input_size // 2) - 2
+        else:
+            qnn_input_size = input_size // 2
 
         return QuantumCNN(
             quantum_channels=quantum_channels,
