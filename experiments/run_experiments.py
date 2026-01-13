@@ -333,6 +333,39 @@ def main(config_path: str = "config/config.yaml"):
                     'val_accs': classical_trainer.val_accs,
                 }
             })
+            
+    elif config["model"]["type"] == "random_nonlinear":
+        # Load data normally (no quantum preprocessing)
+        train_loader, test_loader = dataset_manager.get_dataloaders(
+            batch_size=config["training"]["batch_size"],
+            train_size=config["dataset"]["train_size"],
+            test_size=config["dataset"]["test_size"]
+        )
+
+        # Train random nonlinear CNN
+        random_trainer = train_model(
+            "random_nonlinear",
+            config,
+            train_loader,
+            test_loader,
+            device,
+            use_wandb=config["wandb"]["enabled"]
+        )
+
+        final_loss, final_acc = random_trainer.validate(test_loader)
+        console.print(
+            f"\n[bold green]Final Random Nonlinear CNN Test Accuracy: {final_acc:.2f}%[/bold green]"
+        )
+
+        if config["visualization"]["plot_metrics"]:
+            viz.plot_training_curves({
+                'random_nonlinear': {
+                    'train_losses': random_trainer.train_losses,
+                    'train_accs': random_trainer.train_accs,
+                    'val_losses': random_trainer.val_losses,
+                    'val_accs': random_trainer.val_accs,
+                }
+            })
 
     # Close WandB
     if config["wandb"]["enabled"]:
