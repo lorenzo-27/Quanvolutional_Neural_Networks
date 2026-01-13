@@ -51,7 +51,10 @@ def setup_experiment(config: dict) -> dict:
         f"Name: {config['experiment']['name']}\n"
         f"Device: {device}\n"
         f"Dataset: {config['dataset']['name']}\n"
-        f"Model: {config['model']['type']}",
+        f"Model: {config['model']['type']}\n"
+        f"Encoding: {config['quantum']['encoding']['type']}\n"
+        f"Circuit: {config['quantum']['circuit']['type']}\n"
+        f"Noise: {config['quantum']['noise']['enabled']}",
         border_style="green"
     ))
 
