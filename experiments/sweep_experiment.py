@@ -50,8 +50,8 @@ BASE_CONFIG = {
     "dataset": {
         "name": "MNIST",
         "path": "./data",
-        "train_size": 500,
-        "test_size": 100,
+        "train_size": 240,
+        "test_size": 40,
         "normalize": True
     },
     "quantum": {
@@ -78,18 +78,18 @@ BASE_CONFIG = {
     },
     "model": {
         "type": "qnn",
-        "quanv_filters": 4,
-        "conv1_filters": 32,
-        "conv1_kernel": 3,
+        "quanv_filters": 25,
+        "conv1_filters": 50,
+        "conv1_kernel": 5,
         "conv2_filters": 64,
-        "conv2_kernel": 3,
-        "fc1_units": 128,
-        "dropout": 0.3,
+        "conv2_kernel": 5,
+        "fc1_units": 1024,
+        "dropout": 0.4,
         "num_classes": 10
     },
     "training": {
-        "epochs": 10,
-        "batch_size": 64,
+        "epochs": 30,
+        "batch_size": 128,
         "learning_rate": 0.001,
         "optimizer": "adam",
         "checkpoint_dir": "./checkpoints/sweep",
