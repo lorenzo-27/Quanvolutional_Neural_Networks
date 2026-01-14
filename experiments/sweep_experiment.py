@@ -90,7 +90,9 @@ BASE_CONFIG = {
         "epochs": 10,
         "batch_size": 64,
         "learning_rate": 0.001,
-        "optimizer": "adam"
+        "optimizer": "adam",
+        "checkpoint_dir": "./checkpoints/sweep",
+        "save_frequency": 5
     },
     "preprocessing": {
         "cache_dir": "./cache/sweep",
