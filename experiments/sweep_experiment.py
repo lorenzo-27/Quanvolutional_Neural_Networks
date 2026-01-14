@@ -22,6 +22,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeEl
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+import wandb
 
 from src.data.dataset import DatasetManager, preprocess_for_quantum
 from src.quantum.quanvolution import QuanvolutionalLayer
@@ -238,6 +239,16 @@ class SweepExperiment:
             device: torch.device
     ) -> dict:
         """Run a single experiment configuration."""
+
+        # Initialize WandB for this experiment
+        if config.get("wandb", {}).get("enabled", False):
+            wandb.init(
+                project="qnn-sweep",
+                name=config["experiment"]["name"],
+                config=config,
+                reinit=True # Allow multiple inits in same script
+            )
+
         model_type = config["model"]["type"]
 
         if model_type == "qnn":
