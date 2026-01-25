@@ -45,7 +45,7 @@ Where:
 │               QUANTUM PREPROCESSING LAYER                   │
 │  ┌─────────────────────────────────────────────────────┐    │
 │  │  For each 2×2 patch:                                │    │
-│  │    1.  Encode pixels → Quantum states               │    │
+│  │    1. Encode pixels → Quantum states               │    │
 │  │    2. Apply quantum circuit                         │    │
 │  │    3. Measure expectation values                    │    │
 │  └─────────────────────────────────────────────────────┘    │
